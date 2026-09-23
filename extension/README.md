@@ -20,7 +20,7 @@ The code is small: `background.js` (when to read, and saving), `capture.js` (rea
 
 ## Trying it before it's listed
 
-For developers, and for testing with a real account. Google sign-in needs an OAuth client, so do "Before listing" steps 1 and 2 first.
+For developers, and for testing with a real account. While the Google project is in Testing mode, only its test users can connect Drive.
 
 1. In Chrome, open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked** and pick this `extension` folder.
 2. The Feed Unfucker page opens. Click **Connect**, then **Read now**.
@@ -28,7 +28,7 @@ For developers, and for testing with a real account. Google sign-in needs an OAu
 ## Before listing (project owner, once)
 
 1. **A stable extension ID.** Done: `manifest.json` has a public `"key"`, so the extension always loads as `eadolnijhnlehcohaagfipanahcnlklo`. The Web Store may assign its own ID when it's listed; if so, add that ID to the OAuth client too.
-2. **A Google OAuth client.** In Google Cloud: create a project, enable the Google Drive API, set up the OAuth consent screen (app name Feed Unfucker, scope `drive.file`), then create an OAuth client of type **Chrome extension** with the extension's ID. Put its client ID in `manifest.json` under `oauth2.client_id`. `drive.file` isn't a sensitive scope, so Google's verification is light.
+2. **A Google OAuth client.** Done (Google Cloud project "Feed Unfucker", in Testing mode, so only its listed test users can sign in until it's published). For reference, it was made like this: in Google Cloud, create a project, enable the Google Drive API, set up the OAuth consent screen (app name Feed Unfucker, scope `drive.file`), then create an OAuth client of type **Chrome extension** with the extension's ID. Its client ID is in `manifest.json` under `oauth2.client_id`; it isn't a secret. To let anyone sign in, publish the app on the Audience page. `drive.file` isn't a sensitive scope, so Google's verification is light.
 3. **The Web Store listing.** A Chrome Web Store developer account (one-time fee), a short description, a privacy policy page (what's above is most of it), and the permission justifications: `scripting` and the Facebook and Instagram host permissions to read the feed, `identity` for Google Drive, `alarms` to read once a day, `storage` for the extension's own settings.
 4. Put the listing's link in "Install" above and in `docs/setup.md` step 3.
 

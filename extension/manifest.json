@@ -24,7 +24,7 @@
     "https://www.instagram.com/*"
   ],
   "oauth2": {
-    "client_id": "REPLACE_WITH_THE_PROJECT_OAUTH_CLIENT_ID.apps.googleusercontent.com",
+    "client_id": "806855415311-pilgf9ec88ejpijkj13213547lbvq6mf.apps.googleusercontent.com",
     "scopes": [
       "https://www.googleapis.com/auth/drive.file"
     ]
