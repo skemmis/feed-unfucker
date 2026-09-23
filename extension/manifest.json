@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Feed Unfucker",
+  "version": "0.1.0",
+  "description": "Reads your Facebook Friends feed and Instagram Following feed once a day and saves it to your own Google Drive, for your agent to turn into a calm digest.",
+  "minimum_chrome_version": "116",
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Feed Unfucker"
+  },
+  "permissions": [
+    "alarms",
+    "storage",
+    "identity",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://www.facebook.com/*",
+    "https://www.instagram.com/*"
+  ],
+  "oauth2": {
+    "client_id": "REPLACE_WITH_THE_PROJECT_OAUTH_CLIENT_ID.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/drive.file"
+    ]
+  }
+}

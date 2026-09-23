@@ -1,6 +1,6 @@
-# Running in the cloud
+# A headless browser in the cloud (older route)
 
-This is an advanced alternative to the normal setup, which reads the feed in your own Chrome on your computer. It needs technical steps, so it's for people who want runs to happen while their computer is off.
+The normal setup already runs in the cloud: the Chrome extension reads the feed in the user's own browser and the agent picks it up from Google Drive, wherever it runs. This page is the older alternative, where a cloud machine logs in to Meta itself with a saved login. It needs technical steps and a datacenter login is more likely to trigger Meta's security checks, so it's kept only for reference. It also needs `FU_READ_VIA=browser`.
 
 Many coding agents can run a scheduled job in the cloud, which fixes "my laptop was asleep". It also moves the Meta login and the posts off the user's device, so it's the riskier mode. Get local mode working first, then try cloud mode on one account and watch for security checks.
 

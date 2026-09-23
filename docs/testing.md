@@ -1,6 +1,6 @@
 # Testing without a real account
 
-Three levels, from quickest to closest to real use.
+Four levels, from quickest to closest to real use.
 
 ## 1. Unit tests
 
@@ -18,9 +18,32 @@ They cover repeats, the fixed rules, labels, per-person limits, ordering, the em
 
 Builds a digest from `fixtures/sample-feed.json` (made-up friends, generated photos), with labels already chosen. Open `state/demo/preview.html`. It's a quick check that the email looks right after changing the renderer; it isn't part of setup.
 
-## 3. A real agent on a fake feed
+## 3. The extension on the fake feed
 
-`fixtures/fake-feed/` is a small made-up feed page with the things a real one has: friends' posts, an ad, a suggested post, a bare reshare, a political rant, a "See more" link, like counts to ignore, and a post that only appears after scrolling. It tests the reading and labelling prompts with your actual agent and browser.
+```sh
+node extension/test/run.mjs
+```
+
+Loads the extension into Chromium, points it at `fixtures/fake-feed/` and checks one full read (see `extension/README.md`). `fixtures/sample-capture.json` is what such a read saves.
+
+## 4. A real agent on a capture
+
+This tests `prompts/read-capture.md` and `prompts/label.md` with your actual agent, without Google Drive:
+
+```sh
+export FU_HOME=/tmp/fu-fake FU_PREFERENCES=fixtures/sample-preferences.md
+./fu init
+```
+
+Then ask your agent:
+
+> Follow prompts/read-capture.md, but instead of looking in Google Drive, use fixtures/sample-capture.json as the only capture. The state folder is $FU_HOME. Then follow prompts/label.md, then run ./fu digest --preview $FU_HOME/preview.html.
+
+The photos point at example.com, so `./fu ingest` reports that it couldn't download them; that's expected. The good result is below.
+
+## 5. A real agent reading the fake feed itself (browser mode)
+
+`fixtures/fake-feed/` is a small made-up feed page with the things a real one has: friends' posts, an ad, a suggested post, a bare reshare, a political rant, a "See more" link, like counts to ignore, and a post that only appears after scrolling. It tests `prompts/read-feed.md` with your actual agent and browser.
 
 ```sh
 python3 -m http.server 8765 --directory fixtures/fake-feed &
