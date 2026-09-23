@@ -1,0 +1,6 @@
+# Personal data: never commit
+preferences.md
+state/
+browser-profile/
+*.storage-state.json
+.env
