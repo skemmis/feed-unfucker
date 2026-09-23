@@ -1,5 +1,7 @@
 # Running in the cloud
 
+This is an advanced alternative to the normal setup, which reads the feed in your own Chrome on your computer. It needs technical steps, so it's for people who want runs to happen while their computer is off.
+
 Many coding agents can run a scheduled job in the cloud, which fixes "my laptop was asleep". It also moves the Meta login and the posts off the user's device, so it's the riskier mode. Get local mode working first, then try cloud mode on one account and watch for security checks.
 
 **Status: written but not yet tested on a real account.**

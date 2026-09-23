@@ -184,13 +184,16 @@ def ingest(conn, cfg, doc, base_dir, fetch=fetch_image):
         img_dir = cfg.images_dir / post_id
         for n, image in enumerate(post["images"]):
             alt = (image.get("alt") or "").strip()
+            # The original link lets an email sent by the agent's email tool load the photo
+            # from Facebook or Instagram; those links expire after some days.
+            url = image.get("url") if (image.get("url") or "").startswith("https://") else None
             try:
                 img_dir.mkdir(parents=True, exist_ok=True)
                 path = fetch(image, img_dir / str(n), base_dir)
-                saved.append({"file": str(path.relative_to(cfg.home)), "alt": alt})
+                saved.append({"file": str(path.relative_to(cfg.home)), "alt": alt, "url": url})
             except (OSError, ValueError) as exc:
                 # Keep a placeholder so the digest can say a photo is missing.
-                saved.append({"file": None, "alt": alt})
+                saved.append({"file": None, "alt": alt, "url": url})
                 summary["image_problems"].append(f"{post['author']}: {exc}")
         post["images"] = saved
         reason = stage1(post)

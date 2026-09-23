@@ -10,13 +10,13 @@ python3 -m unittest
 
 They cover repeats, the fixed rules, labels, per-person limits, ordering, the email's structure, state export and pruning. No network, no browser.
 
-## 2. The demo
+## 2. The demo (for developers)
 
 ```sh
 ./fu demo
 ```
 
-Builds a digest from `fixtures/sample-feed.json` (made-up friends, generated photos), with labels already chosen. Open `state/demo/preview.html`. Add `--send` to email it to yourself once `state/config.env` is filled in.
+Builds a digest from `fixtures/sample-feed.json` (made-up friends, generated photos), with labels already chosen. Open `state/demo/preview.html`. It's a quick check that the email looks right after changing the renderer; it isn't part of setup.
 
 ## 3. A real agent on a fake feed
 
@@ -28,7 +28,7 @@ export FU_HOME=/tmp/fu-fake FU_PREFERENCES=fixtures/sample-preferences.md
 ./fu init
 ```
 
-Then ask your agent (with the Playwright MCP server registered):
+Register the Playwright MCP server in its own-window mode for this (`./fu mcp --window` prints the command), so the test doesn't touch your everyday Chrome. Then ask your agent:
 
 > Follow prompts/read-feed.md, but open http://localhost:8765/ instead of the Facebook address and treat it as platform facebook. The state folder is $FU_HOME. Then follow prompts/label.md, then run ./fu digest --preview $FU_HOME/preview.html.
 

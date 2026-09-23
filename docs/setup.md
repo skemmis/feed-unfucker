@@ -1,66 +1,64 @@
 # Setting up
 
-Agent: walk the user through these steps one at a time, and check each one works before moving on. The user does anything involving passwords themselves; you never see them.
+Agent: you do every step yourself. The user never edits a file, runs a command or copies anything technical. Their only actions are clicks in their own browser, plus a few plain answers in chat. Ask one thing at a time, keep each message short and friendly, and don't show them commands or file names unless they ask.
 
-Before starting, make sure the user knows: automated reading breaks Meta's terms of service, and Meta can restrict an account that seems automated. Feed Unfucker keeps the risk low (read-only, once a day, a real browser, a person's pace), but it's not zero. Only use it on an account whose owner accepts that.
+## 0. Check where you are running
 
-## 1. Check the tools
+Run `./fu init`, then `./fu doctor`, quietly.
 
-- Python 3.9 or newer (`python3 --version`). No packages to install.
-- Node.js 18 or newer, for `npx` (`npx --version`). It runs the Playwright MCP browser server.
-- Google Chrome. The Playwright MCP server drives it by default. Without Chrome, run `npx playwright install chromium` and add `--browser chromium` to the MCP command below. A real Chrome is better: it looks like the user's normal browser.
+If doctor's "this machine" line says there's no screen, you're on a cloud machine and can't reach the user's Chrome. Stop and tell them, in one or two sentences, that setup has to run from the agent on their own computer (for example the Claude desktop app, Claude Code or Codex on their laptop), because it reads the feed in their own Chrome. Nothing else to do here.
 
-Then run `./fu init`. It creates `state/` (ignored by git), `state/config.env` and `preferences.md`.
+## 1. One sentence about the risk
 
-## 2. Email
+Say this in your own words and wait for a yes: reading your feed automatically breaks Meta's terms, and Meta could restrict an account that looks automated. Feed Unfucker keeps that risk low (it only reads, once a day, in your own browser), but it isn't zero.
 
-Ask the user to open `state/config.env` in their own editor and fill in the email settings. Don't read the file, and don't ask them to paste a password to you.
+## 2. Connect their Chrome
 
-For Gmail they need an app password: turn on 2-Step Verification, then create one at https://myaccount.google.com/apppasswords and paste it into `FU_SMTP_PASSWORD`. Other providers are listed in the file.
+Feed Unfucker reads the feed in the Chrome the user already uses, where they're already logged in, through Playwright's Chrome extension. The repo's `.mcp.json` already registers it for Claude Code. For Codex or another agent, register it yourself with the command `./fu mcp` prints, and restart if your harness needs that.
 
-Check it with `./fu doctor`, then send a sample digest built from made-up friends:
+1. Ask the user to open https://chromewebstore.google.com/detail/playwright-extension/mmlmfjhmonkocbjadbfplnigmagldckm in Chrome and click **Add to Chrome**.
+2. Open `https://www.facebook.com/?filter=friends&sk=h_chr` with `browser_navigate`. Chrome shows a Playwright page asking which tab to share, or asking to allow the connection. Tell the user to click to allow it.
+3. Take a snapshot. If it shows their Friends feed, you're connected. If it shows a login page, ask them to log in to Facebook in that tab as they normally would, then check again. Never type anything into a login form yourself.
+4. Ask whether they use Instagram too. If they do, check `https://www.instagram.com/?variant=following` the same way. If they don't, run `./fu config set FU_PLATFORMS facebook`.
 
-```sh
-./fu demo --send
-```
+If they don't use Chrome or Edge, use the pop-up window instead: register the server with `./fu mcp --window`, open facebook.com, and ask them to log in once in the window that appears. The login is saved for later runs.
 
-Ask the user to find it in their inbox and look at it on their phone too. If it went to spam, marking it "not spam" once usually fixes that.
+## 3. Email
 
-## 3. The browser
+The digest goes out from the user's own email account, sent by you.
 
-The agent reads feeds through the Playwright MCP server, using a browser profile kept in `state/browser-profile/`. Run `./fu mcp` to print the exact command for this machine, with full paths, and the line to register it:
+- **If you have an email tool** (a Gmail or Outlook connector): ask which address the digest should go to, and run `./fu config set FU_EMAIL_TO <address>`.
+- **If you don't have one:** ask the user to connect their email in your connector settings. It's a normal "sign in with Google" or Microsoft page, done in their browser. Then continue as above.
 
-- **Claude Code:** the repo's `.mcp.json` already registers it, with paths relative to the repo, so start Claude Code from the repo folder. Approve the `playwright` server when asked, then restart the session.
-- **Codex:** run the `codex mcp add playwright -- …` line that `./fu mcp` printed, then restart Codex.
-- **Any other agent:** register an MCP server named `playwright` that runs the printed command.
+Only if neither works, fall back to SMTP with an app password (see "Sending over SMTP" below). That's the one route that needs the user to handle a password, so don't offer it first.
 
-Check it works by opening `https://example.com` with `browser_navigate`. A browser window should appear.
+## 4. What they want to see
 
-## 4. Log in, by hand
+Ask two or three short questions and write the answers into `preferences.md` in plain English:
 
-1. Open `https://www.facebook.com/` with `browser_navigate`.
-2. Tell the user to log in in that browser window themselves, including any 2FA, and to say when they're done. Don't take snapshots or screenshots while they type.
-3. Do the same for `https://www.instagram.com/` if they want Instagram too.
-4. If they only want one platform, set `FU_PLATFORMS` in `state/config.env` (the user can do this, or you can edit just that line).
+- Who are your closest friends? They'll come first.
+- Anything you'd rather never see, even from friends? (Politics is already left out.)
+- Weekly or daily? Weekly is the default. For daily, run `./fu config set FU_CADENCE daily`.
 
-The login stays in `state/browser-profile/`, like a normal browser remembering them.
+Also set their timezone if you can tell it, like `./fu config set FU_TIMEZONE Europe/London`.
 
-## 5. Preferences
+## 5. The first digest, now
 
-Open `preferences.md` with the user and help them write what they want in plain English: close friends, topics to skip, people whose photos to always include, a per-person limit. It's read on every run.
+Don't wait for the schedule. Follow `prompts/read-feed.md` for each platform, `prompts/label.md`, then `./fu digest --prepare`, send it with your email tool, and run `./fu sent <id>`. Tell the user it's in their inbox, and ask them to reply here if something is missing or shouldn't be there. Turn anything they say into a line in `preferences.md`.
 
-## 6. The first read
+## 6. Schedule it
 
-Follow `prompts/read-feed.md` for each platform, then `prompts/label.md`. Then build a preview without sending:
+Set it up yourself, then tell the user it's done and when it will run:
 
-```sh
-./fu digest --preview state/preview.html
-```
+- **macOS:** write `~/Library/LaunchAgents/com.feedunfucker.run.plist` from `schedule/com.feedunfucker.run.plist` with this repo's real path and this agent (`claude` or `codex`), then run `launchctl load` on it.
+- **Linux:** add the line from `schedule/cron.example` to the user's crontab, with the real path.
+- **Windows:** create a daily Task Scheduler task that runs `scripts/scheduled-run.sh` through Git Bash or WSL.
+- Or use your harness's own scheduled tasks, if it has them, pointed at `prompts/run.md`.
 
-Go through it with the user. Ask them to scroll their feed by hand for a minute and say if an important post is missing, or if something slipped through that shouldn't have. Suggest `preferences.md` lines for anything they want changed.
+Morning runs happen without anyone watching, so Chrome would otherwise ask to allow the connection each time. Ask the user to click the Playwright extension's icon in Chrome and paste the token it shows. Then run `./fu config set PLAYWRIGHT_MCP_EXTENSION_TOKEN <token>`. If they'd rather not, runs still work, but Chrome asks them to click allow each morning.
 
-When they're happy, send it: `./fu digest --send`.
+If Chrome isn't running at that time, the run may not reach the feed. It reports that and tries again the next day.
 
-## 7. Schedule it
+## Sending over SMTP
 
-See `schedule/README.md` to run every morning on this machine, or `docs/cloud.md` to run it in a cloud agent session.
+For agents without an email tool. It embeds the photos in the email, so they never expire, but the user has to create an app password. For Gmail: turn on 2-Step Verification, create one at https://myaccount.google.com/apppasswords, and put it in `state/config.env` as `FU_SMTP_PASSWORD` in their own editor. Never ask them to paste it to you. Set `FU_SMTP_HOST`, `FU_SMTP_PORT` and `FU_SMTP_USER` with `./fu config set`. After that, `./fu digest --send` sends it directly.

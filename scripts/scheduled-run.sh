@@ -14,10 +14,16 @@ mkdir -p state/logs
 log="state/logs/$(date +%Y-%m-%d-%H%M)-$agent.log"
 prompt="Follow prompts/run.md exactly. This is a scheduled run and nobody is watching, so don't ask questions."
 
+# Lets the Playwright extension connect to Chrome without an approval click.
+token=$(sed -n 's/^PLAYWRIGHT_MCP_EXTENSION_TOKEN=//p' state/config.env 2>/dev/null | tail -n 1)
+if [ -n "$token" ]; then
+  export PLAYWRIGHT_MCP_EXTENSION_TOKEN="$token"
+fi
+
 case "$agent" in
   claude)
     claude -p "$prompt" --output-format json \
-      --allowedTools "Bash(./fu:*),Bash(rm state/inbox/*),Read,Write,Edit,mcp__playwright" \
+      --allowedTools "Bash(./fu:*),Bash(rm state/inbox/*),Read,Write,Edit,mcp__playwright,mcp__claude_ai_Gmail,mcp__Gmail" \
       >"$log" 2>&1
     ;;
   codex)
