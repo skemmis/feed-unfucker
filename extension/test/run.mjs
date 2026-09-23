@@ -106,6 +106,14 @@ try {
   assert.equal(out.saved[1].record.status, "needs_login");
   assert.equal(out.saved[1].record.items.length, 0);
   assert.equal(out.runs.instagram.status, "needs_login");
+  assert.equal(await page.isVisible("#instagram-login"), false);  // the page shown before the read
+  await page.reload();
+  assert.equal(await page.isVisible("#instagram-login"), true, "no log-in link after a logged-out read");
+
+  // After a logged-out read, Read now tries again straight away.
+  await page.evaluate(() => chrome.runtime.sendMessage({ type: "fu-read-now" }));
+  const retry = await page.evaluate(() => chrome.storage.local.get("saved"));
+  assert.equal(retry.saved.length, 3, "couldn't retry after a logged-out read");
 
   console.log(`ok: ${rec.items.length} posts, ${rec.items.reduce((a, i) => a + i.images.length, 0)} photos, ${rec.note}`);
 } finally {

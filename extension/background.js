@@ -55,8 +55,9 @@ async function readDue(now) {
       const last = runs[platform];
       const hoursSince = last ? (Date.now() - Date.parse(last.at)) / 3600000 : Infinity;
       if (!now && hoursSince < MIN_HOURS_BETWEEN_READS) continue;
-      // Even "Read now" never reads a feed twice within an hour.
-      if (now && hoursSince < 1) continue;
+      // Even "Read now" never reads a feed twice within an hour, once a read has worked.
+      // After a login page or an error it can try again straight away.
+      if (now && last && last.status === "ok" && hoursSince < 1) continue;
       await readOne(platform);
     }
     await pruneCaptures(KEEP_DAYS);

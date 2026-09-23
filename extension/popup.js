@@ -1,5 +1,6 @@
 const $ = (id) => document.getElementById(id);
 const PLATFORMS = ["facebook", "instagram"];
+const HOME = { facebook: "https://www.facebook.com/", instagram: "https://www.instagram.com/" };
 
 if (new URLSearchParams(location.search).has("welcome")) document.body.classList.add("welcome");
 
@@ -12,7 +13,7 @@ const describe = (run) => {
   if (!run) return { text: "Not read yet", bad: false };
   if (run.status === "ok") return { text: `${run.count} posts, ${ago(run.at)}`, bad: false };
   if (run.status === "no_posts") return { text: `No posts found, ${ago(run.at)}`, bad: true };
-  if (run.status === "needs_login") return { text: "Log in to this site in Chrome", bad: true };
+  if (run.status === "needs_login") return { text: "Logged out. Log in, then click Read now.", bad: true };
   return { text: `Couldn't read it, ${ago(run.at)}`, bad: true };
 };
 
@@ -36,6 +37,7 @@ async function render() {
     const d = describe(runs[p]);
     $(`${p}-status`).textContent = platforms.includes(p) ? d.text : "Off";
     $(`${p}-status`).classList.toggle("bad", platforms.includes(p) && d.bad);
+    $(`${p}-login`).hidden = !(platforms.includes(p) && runs[p] && runs[p].status === "needs_login");
   }
   $("next").hidden = !(connected && Object.values(runs).some((r) => r.status === "ok"));
 }
@@ -55,6 +57,11 @@ $("read-now").addEventListener("click", async () => {
 });
 
 for (const p of PLATFORMS) {
+  // A normal tab, so the user logs in themselves, the way they always do.
+  $(`${p}-login`).addEventListener("click", (e) => {
+    e.preventDefault();
+    chrome.tabs.create({ url: HOME[p] });
+  });
   $(p).addEventListener("change", async () => {
     const platforms = PLATFORMS.filter((x) => $(x).checked);
     await chrome.storage.local.set({ platforms });
