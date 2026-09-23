@@ -4,3 +4,7 @@ state/
 browser-profile/
 *.storage-state.json
 .env
+
+# Python
+__pycache__/
+*.pyc

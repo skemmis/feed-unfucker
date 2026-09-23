@@ -1,0 +1,4 @@
+#!/bin/sh
+# Feed Unfucker's command line. Needs only Python 3.9+; no packages to install.
+here="$(cd "$(dirname "$0")" && pwd)"
+PYTHONPATH="$here${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m feed_unfucker "$@"
