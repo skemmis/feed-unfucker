@@ -22,9 +22,14 @@ const testExt = path.join(tmp, "extension");
 
 // A test copy: the fake feed instead of Facebook, local storage instead of Drive, short pauses.
 fs.cpSync(extDir, testExt, { recursive: true, filter: (p) => !p.includes(`${path.sep}test`) });
+let gate = "password";
 const server = http.createServer((req, res) => {
-  if (req.url.startsWith("/accounts/login")) {
-    return res.writeHead(200, { "Content-Type": "text/html" }).end('<form><input name="u"><input type="password"></form>');
+  if (req.url.startsWith("/gate")) {
+    const pages = {
+      password: '<form><input name="u"><input type="password"></form>',
+      code: '<h2>Check your phone</h2><p>Enter the code we sent to your number.</p><input type="text" name="c"><button>Continue</button>',
+    };
+    return res.writeHead(200, { "Content-Type": "text/html" }).end(pages[gate]);
   }
   const file = path.join(feedDir, req.url === "/" ? "index.html" : path.normalize(req.url).replace(/^[/\\]+/, ""));
   if (!file.startsWith(feedDir) || !fs.existsSync(file)) return res.writeHead(404).end();
@@ -42,7 +47,7 @@ edit("manifest.json", (s) => {
 edit("background.js", (s) =>
   s
     .replace("https://www.facebook.com/?filter=friends&sk=h_chr", feedUrl)
-    .replace("https://www.instagram.com/?variant=following", `${feedUrl}accounts/login/`)
+    .replace("https://www.instagram.com/?variant=following", `${feedUrl}gate`)
     .replace("minPauseMs: 2000, maxPauseMs: 5000", "minPauseMs: 300, maxPauseMs: 600")
 );
 edit("capture.js", (s) => s.replace('startsWith("https://")', 'startsWith("http")'));
@@ -114,6 +119,13 @@ try {
   await page.evaluate(() => chrome.runtime.sendMessage({ type: "fu-read-now" }));
   const retry = await page.evaluate(() => chrome.storage.local.get("saved"));
   assert.equal(retry.saved.length, 3, "couldn't retry after a logged-out read");
+
+  // A "we sent you a code" page counts as logged out too, not as an empty feed.
+  gate = "code";
+  await page.evaluate(() => chrome.runtime.sendMessage({ type: "fu-read-now" }));
+  const coded = await page.evaluate(() => chrome.storage.local.get("saved"));
+  assert.equal(coded.saved.length, 4);
+  assert.equal(coded.saved[3].record.status, "needs_login", "a code check wasn't treated as logged out");
 
   console.log(`ok: ${rec.items.length} posts, ${rec.items.reduce((a, i) => a + i.images.length, 0)} photos, ${rec.note}`);
 } finally {

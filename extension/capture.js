@@ -15,9 +15,21 @@ export async function capturePage(opts) {
 
   const fingerprint = (text) => text.replace(/\s+/g, " ").trim().slice(0, 120);
 
-  const blocked = () =>
-    /\/login|\/checkpoint|\/challenge|two_step|accounts\/login/.test(location.href) ||
-    !!document.querySelector('input[type="password"]');
+  // A login page, a code check or any other "confirm it's you" screen. The user deals with
+  // those themselves, in a normal tab; this never types anything or clicks through them.
+  const gateWords = /\b(enter (the|your) code|security code|confirmation code|we sent|code (was )?sent|verify|verification|confirm (it'?s|that it'?s) you|security check|two-factor|authentication|log in|log into|sign in)\b/i;
+  const blocked = () => {
+    if (/\/login|\/checkpoint|\/challenge|two_step|two_factor|auth_platform|\/recover|\/suspended|confirmemail|accounts\/login/.test(location.href)) return true;
+    if (document.querySelector('input[type="password"], input[autocomplete="one-time-code"]')) return true;
+    // A big dialog over the feed (not a small chat window), or a page with no posts at all.
+    const bigDialogs = [...document.querySelectorAll('[role="dialog"]')].filter(
+      (d) => d.getBoundingClientRect().width > window.innerWidth * 0.5
+    );
+    for (const box of [...bigDialogs, topLevelPosts().length ? null : document.body]) {
+      if (box && box.querySelector('input:not([type="hidden"]):not([type="search"])') && gateWords.test(box.innerText || "")) return true;
+    }
+    return false;
+  };
 
   const topLevelPosts = () =>
     [...document.querySelectorAll('[role="article"], article')].filter(

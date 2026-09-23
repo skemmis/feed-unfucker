@@ -12,7 +12,7 @@ It reads the user's Facebook Friends feed and Instagram Following feed in their 
 - It opens the feed in a small unfocused window, scrolls a screen at a time with pauses of 2 to 5 seconds, and closes the window. It stops after 3 screens with nothing new, 3 screens of posts it saw last time, 40 screens or 80 posts.
 - The only thing it clicks is "See more" (Instagram: "more") inside a post, to read the whole text. It never likes, comments, follows or opens anything else.
 - It saves the page's own text for each post, the post's links, and the addresses of its photos. It doesn't try to understand the posts; the agent does that.
-- It stops at once on a login page or security check, and saves a capture with status `needs_login` so the agent can tell the user.
+- It stops at once on a login page, a code check or any other security check, never typing or clicking anything there, and saves a capture with status `needs_login` so the agent can tell the user. The extension's page then links to the site so the user can deal with it in a normal tab.
 - Google Drive access is `drive.file`, the narrowest scope: it can only see files it made. Captures older than 14 days are deleted.
 - Nothing is sent anywhere else. There's no server.
 
@@ -34,4 +34,4 @@ For developers, and for testing with a real account. While the Google project is
 
 ## Testing
 
-`node extension/test/run.mjs` loads the extension into Chromium with Playwright, points it at `fixtures/fake-feed/` instead of Facebook, and swaps Google Drive for local storage. It checks that a read finds all eight posts on the fake page (including the one that appears only after scrolling, and Lee's full text after "See more"), that the window closes, that a second "Read now" within the hour doesn't read again, and that a logged-out site stops at once with status `needs_login`. It needs Node and the `playwright` package.
+`node extension/test/run.mjs` loads the extension into Chromium with Playwright, points it at `fixtures/fake-feed/` instead of Facebook, and swaps Google Drive for local storage. It checks that a read finds all eight posts on the fake page (including the one that appears only after scrolling, and Lee's full text after "See more"), that the window closes, that a second "Read now" within the hour doesn't read again, and that a login page or a "we sent you a code" page stops the read at once with status `needs_login`, after which Read now can try again. It needs Node and the `playwright` package.
