@@ -38,10 +38,10 @@ def cmd_init(args, cfg):
     if not env.exists():
         shutil.copyfile(REPO_ROOT / "config.example.env", env)
         env.chmod(0o600)
-        print(f"Created {env}. The user fills in their email settings there; don't read it back.")
+        print(f"Created {env}. Change settings with ./fu config set; don't read the file.")
     if not cfg.preferences_path.exists():
         shutil.copyfile(REPO_ROOT / "preferences.example.md", cfg.preferences_path)
-        print(f"Created {cfg.preferences_path} from the example. The user edits it in plain English.")
+        print(f"Created {cfg.preferences_path} from the example. Fill it in from the user's answers.")
     store.connect(cfg).close()
     print(f"State folder ready: {cfg.home}")
 

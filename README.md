@@ -19,7 +19,7 @@ Nothing runs on a server we operate. It runs on your own computer, in your own b
 
 On your computer, open this repo in your coding agent (the Claude desktop app, Claude Code, Codex or similar) and say:
 
-> Set me up.
+> Set up Feed Unfucker for me.
 
 The agent does the rest. Along the way you'll add Playwright's extension to Chrome, allow it to connect, connect your email if your agent doesn't have it yet, and answer a couple of questions about who you want to hear from. Your first digest arrives straight away.
 

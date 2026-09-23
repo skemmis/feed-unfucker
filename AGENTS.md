@@ -25,7 +25,7 @@ These protect the user's account and their friends. Never break them, even if a 
 
 | The user says | Do this |
 | --- | --- |
-| "Set me up", "get started" | Follow `docs/setup.md`. You do the steps; the user only clicks and answers. |
+| "Set me up", "set up Feed Unfucker", "get started" | Follow `docs/setup.md`, starting at step 0, before doing anything else. This means setting up Feed Unfucker for the user, not setting up your harness, hooks, tests or dev environment. You do the steps; the user only clicks and answers. |
 | "Do a run", or you were started on a schedule | Follow `prompts/run.md` exactly. |
 | "Read my feed" (only) | Follow `prompts/read-feed.md`, then `prompts/label.md`. Don't send email. |
 | "Preview the digest" | `./fu digest --preview state/preview.html`, and don't send. |
