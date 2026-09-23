@@ -73,7 +73,7 @@ def run(out, send=False, cfg=None):
 
     d = digest_mod.build(conn, demo_cfg)
     preview = out / "preview.html"
-    preview.write_text(render.render_html(d, lambda f: str(out / f), demo_cfg.tz), encoding="utf-8")
+    preview.write_text(render.render_html(d, lambda im: str(out / im["file"]) if im.get("file") else None, demo_cfg.tz), encoding="utf-8")
     msg, subject = mail.build_digest_message(demo_cfg, d)
     (out / "digest.eml").write_bytes(bytes(msg))
     print(f"Read {summary['seen']} made-up posts; {summary['new'] - summary['waiting_for_label']} dropped by the fixed rules.")

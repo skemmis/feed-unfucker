@@ -96,7 +96,7 @@ def footer_lines(digest):
 
 
 def render_html(digest, image_src, tz=None):
-    """image_src(file) returns the src for a stored image, or None if it isn't in this email."""
+    """image_src(image) returns the src for one of a post's images, or None if it isn't in this email."""
     e = html.escape
     out = []
     add = out.append
@@ -122,7 +122,7 @@ def render_html(digest, image_src, tz=None):
                 add(f"<div class='fu-rule' style='border-top:1px solid {RULE};margin:4px 0 20px;'></div>")
             missing = 0
             for im in post.images:
-                src = image_src(im["file"]) if im.get("file") else None
+                src = image_src(im)
                 if not src:
                     missing += 1
                     continue
@@ -173,8 +173,8 @@ def render_broke(reason, now, tz=None):
         f"Feed Unfucker couldn't read your feed ({local:%A} {local.day} {local:%B}), so there's no digest this time.\n\n"
         f"What happened: {reason}\n\n"
         "Nothing was liked, posted or sent on your behalf. To fix it, open the repo with your coding agent and ask it to "
-        "check the last run. If Facebook or Instagram showed a login or security check, log in by hand in the agent's "
-        "browser window; the agent never types your password.\n"
+        "check the last run. If Facebook or Instagram asked you to log in or confirm it's you, open it in Chrome and do "
+        "that as usual; the agent never types your password.\n"
     )
     e = html.escape
     paras = "".join(

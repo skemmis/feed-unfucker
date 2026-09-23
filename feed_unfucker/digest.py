@@ -146,22 +146,24 @@ def build(conn, cfg, now=None):
     return Digest(cfg.cadence, start, now, friends, left_out, capped, posts_read, waiting)
 
 
-def mark_sent(conn, digest, subject, kind="digest"):
-    now = store.iso(digest.period_end)
-    ids = digest.post_ids
-    conn.executemany("UPDATE posts SET digested_at = ? WHERE id = ?", [(now, i) for i in ids])
+def mark_sent(conn, digest, subject):
+    record_sent(conn, store.iso(digest.period_end), digest.post_ids, digest.capped_ids, subject, len(digest.friends))
+
+
+def record_sent(conn, sent_at, post_ids, capped_ids, subject, n_friends):
+    conn.executemany("UPDATE posts SET digested_at = ? WHERE id = ?", [(sent_at, i) for i in post_ids])
     conn.executemany(
         "UPDATE posts SET decision = 'leave_out', left_out_reason = 'cap', digested_at = ? WHERE id = ?",
-        [(now, i) for i in digest.capped_ids],
+        [(sent_at, i) for i in capped_ids],
     )
     # Left-out posts are reported once, in this digest's footer.
     conn.execute(
         "UPDATE posts SET digested_at = ? WHERE decision = 'leave_out' AND digested_at IS NULL AND first_seen_at <= ?",
-        (now, now),
+        (sent_at, sent_at),
     )
     conn.execute(
-        "INSERT INTO digests (sent_at, kind, n_posts, n_friends, subject) VALUES (?, ?, ?, ?, ?)",
-        (now, kind, digest.n_posts, len(digest.friends), subject),
+        "INSERT INTO digests (sent_at, kind, n_posts, n_friends, subject) VALUES (?, 'digest', ?, ?, ?)",
+        (sent_at, len(post_ids), n_friends, subject),
     )
     conn.commit()
 

@@ -2,15 +2,17 @@
 
 import argparse
 import json
+import os
 import shutil
 import sys
 from datetime import timedelta
 from pathlib import Path
 
 from . import digest as digest_mod
-from . import labels, mail, state, store
-from .config import REPO_ROOT, load_config
+from . import labels, mail, outbox, state, store
+from .config import REPO_ROOT, load_config, set_env_value
 from .ingest import IngestError, ingest
+from .render import subject as render_subject
 
 PLAYWRIGHT_MCP = "@playwright/mcp@latest"
 MIN_HOURS_BETWEEN_READS = 20
@@ -56,13 +58,14 @@ def cmd_doctor(args, cfg):
     line(bool(shutil.which("npx")), "npx is installed (needed for the Playwright MCP server)")
     line(cfg.home.exists(), f"state folder {cfg.home}")
     line(cfg.preferences_path.exists(), f"preferences at {cfg.preferences_path}")
-    for key, value in (("FU_SMTP_HOST", cfg.smtp_host), ("FU_SMTP_USER", cfg.smtp_user),
-                       ("FU_SMTP_PASSWORD", cfg.smtp_password), ("FU_EMAIL_TO", cfg.email_to)):
-        line(bool(value), f"{key} is {'set' if value else 'missing'}")
+    line(bool(cfg.email_to), f"FU_EMAIL_TO is {'set' if cfg.email_to else 'missing'}")
+    if cfg.email_ready():
+        print("      email: ./fu sends it over SMTP (digest --send)")
+    else:
+        print("      email: your email tool sends it (digest --prepare, then ./fu sent)")
+    print(f"      this machine: {machine_kind()}")
     print(f"      platforms to read: {', '.join(cfg.platforms) or 'none'}")
     print(f"      digest cadence: {cfg.cadence}" + (f", on {cfg.weekly_day}" if cfg.cadence == "weekly" else ""))
-    profile = cfg.home / "browser-profile"
-    line(profile.exists(), f"browser profile at {profile} (created the first time the agent opens the browser)")
     if cfg.db_path.exists():
         conn = store.connect(cfg)
         last = conn.execute("SELECT started_at, platform, n_seen FROM runs ORDER BY id DESC LIMIT 1").fetchone()
@@ -72,20 +75,41 @@ def cmd_doctor(args, cfg):
     sys.exit(0 if ok else 1)
 
 
+def machine_kind():
+    """Whether a browser window can appear for the user here. Cloud containers can't show one."""
+    if sys.platform in ("darwin", "win32"):
+        return "the user's computer"
+    if os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"):
+        return "the user's computer (Linux desktop)"
+    return "no screen: probably a cloud machine, so the user's Chrome can't be reached from here"
+
+
+def cmd_config(args, cfg):
+    """Set one value in state/config.env without printing the file."""
+    if not args.key.startswith("FU_") and args.key != "PLAYWRIGHT_MCP_EXTENSION_TOKEN":
+        raise SystemExit("Only FU_* settings and PLAYWRIGHT_MCP_EXTENSION_TOKEN can be set here.")
+    if args.key == "FU_SMTP_PASSWORD":
+        raise SystemExit("The user sets FU_SMTP_PASSWORD themselves, in their own editor.")
+    set_env_value(cfg.home / "config.env", args.key, args.value)
+    print(f"Set {args.key}.")
+
+
 def cmd_mcp(args, cfg):
-    profile = cfg.home / "browser-profile"
     out = cfg.home / "inbox"
     base = ["npx", "-y", PLAYWRIGHT_MCP, "--output-dir", str(out)]
-    if args.cloud:
+    if args.window:
+        base += ["--user-data-dir", str(cfg.home / "browser-profile")]
+    elif args.cloud:
         base += ["--headless", "--isolated", "--storage-state", str(cfg.home / "meta.storage-state.json")]
     else:
-        base += ["--user-data-dir", str(profile)]
+        base += ["--extension"]
     print("Playwright MCP server command for this machine:\n")
     print("  " + " ".join(base))
-    print("\nClaude Code (project scope, writes .mcp.json):")
-    print("  claude mcp add --scope project playwright -- " + " ".join(base))
+    print("\nClaude Code: the repo's .mcp.json already registers the --extension version.")
+    print("  For a different version: claude mcp add --scope project playwright -- " + " ".join(base))
     print("\nCodex:")
-    print("  codex mcp add playwright -- " + " ".join(base))
+    env = " --env PLAYWRIGHT_MCP_EXTENSION_TOKEN=<token>" if "--extension" in base else ""
+    print(f"  codex mcp add playwright{env} -- " + " ".join(base))
     print("\nAny other agent: register an MCP server named playwright that runs the command above.")
 
 
@@ -138,6 +162,16 @@ def cmd_due(args, cfg):
 def cmd_digest(args, cfg):
     conn = store.connect(cfg)
     d = digest_mod.build(conn, cfg)
+    if args.prepare:
+        path = outbox.prepare(conn, cfg, d)
+        print(f"Subject: {render_subject(d)}")
+        print(f"{len(d.friends)} friends, {d.n_posts} posts, {d.posts_read} posts read this period.")
+        if d.waiting_for_label:
+            print(f"Warning: {d.waiting_for_label} posts have no label yet and were not included. Run ./fu pending.")
+        print(f"Ready to send: {path}")
+        print("Send it with your email tool: to, subject, html_body as the HTML body, text_body as the plain-text body.")
+        print(f"Then run: ./fu sent {path.stem}")
+        return
     if d.broke and not args.preview:
         reason = "no posts were read since the last email. The browser may be logged out, or the page may have changed."
         msg, subject = mail.build_broke_message(cfg, reason, d.period_end)
@@ -151,7 +185,7 @@ def cmd_digest(args, cfg):
     if args.preview:
         from . import render
 
-        page = render.render_html(d, lambda f: str(cfg.home / f), cfg.tz)
+        page = render.render_html(d, lambda im: str(cfg.home / im["file"]) if im.get("file") else None, cfg.tz)
         preview = Path(args.preview)
         preview.write_text(page, encoding="utf-8")
         print(f"Preview written to {preview}")
@@ -179,7 +213,16 @@ def cmd_digest(args, cfg):
         print("Not sent (add --send to send it).")
 
 
+def cmd_sent(args, cfg):
+    info = outbox.mark_sent(store.connect(cfg), args.email_id)
+    print(f"Recorded as sent: {info['subject']}")
+
+
 def cmd_alert(args, cfg):
+    if args.prepare:
+        path = outbox.prepare_alert(store.connect(cfg), cfg, args.reason, store.utcnow())
+        print(f"Ready to send: {path}\nSend it with your email tool, then run: ./fu sent {path.stem}")
+        return
     msg, subject = mail.build_broke_message(cfg, args.reason, store.utcnow())
     if args.send:
         mail.send(cfg, msg)
@@ -233,7 +276,9 @@ def main(argv=None):
     sub.add_parser("init", help="create the state folder, config.env and preferences.md")
     sub.add_parser("doctor", help="check setup (never prints secrets)")
     p = sub.add_parser("mcp", help="print the Playwright MCP command for this machine")
-    p.add_argument("--cloud", action="store_true", help="headless, using a saved login file instead of a browser profile")
+    which = p.add_mutually_exclusive_group()
+    which.add_argument("--window", action="store_true", help="its own browser window with a saved login, instead of the user's Chrome")
+    which.add_argument("--cloud", action="store_true", help="headless, using a saved login file")
 
     p = sub.add_parser("ingest", help="store posts the agent read (see docs/formats.md)")
     p.add_argument("file")
@@ -245,12 +290,22 @@ def main(argv=None):
     p = sub.add_parser("can-read", help="exit 0 if it's ok to read this platform now (at most once a day)")
     p.add_argument("platform", choices=["facebook", "instagram"])
     sub.add_parser("due", help="exit 0 if a digest should go out now")
-    p = sub.add_parser("digest", help="build the digest email; --send sends it")
-    p.add_argument("--send", action="store_true")
+    p = sub.add_parser("digest", help="build the digest email")
+    how = p.add_mutually_exclusive_group()
+    how.add_argument("--send", action="store_true", help="send it over SMTP (needs the FU_SMTP_* settings)")
+    how.add_argument("--prepare", action="store_true", help="write it as JSON for the agent's email tool to send")
     p.add_argument("--preview", metavar="HTML_FILE", help="also write an HTML preview to open in a browser")
     p = sub.add_parser("alert", help="email a 'something broke' note")
     p.add_argument("--reason", required=True)
-    p.add_argument("--send", action="store_true")
+    how = p.add_mutually_exclusive_group()
+    how.add_argument("--send", action="store_true", help="send it over SMTP")
+    how.add_argument("--prepare", action="store_true", help="write it as JSON for the agent's email tool to send")
+    p = sub.add_parser("sent", help="record that the agent sent a prepared email")
+    p.add_argument("email_id", help="the name printed by --prepare, like 2026-09-27-0730")
+    p = sub.add_parser("config", help="set one value in state/config.env")
+    p.add_argument("action", choices=["set"])
+    p.add_argument("key")
+    p.add_argument("value")
 
     sub.add_parser("status", help="what's stored, recent reads and emails")
     p = sub.add_parser("prune", help="forget the content of old posts, keep their ids")

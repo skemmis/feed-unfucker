@@ -57,8 +57,8 @@ Everything lives in `state/` (or `$FU_HOME`), which git ignores:
 
 - `feed.sqlite`: posts, the keys used to spot repeats, runs and sent emails.
 - `images/`: downloaded photos, one folder per post.
-- `outbox/`: each built email as a `.eml` file.
-- `config.env`: email settings, filled in by the user.
-- `browser-profile/`: the logged-in browser, used by the Playwright MCP server.
+- `outbox/`: each built email, as a `.eml` file (SMTP) or a `.json` file for the agent's email tool.
+- `config.env`: settings, changed with `./fu config set`.
+- `browser-profile/`: only in pop-up window mode, the browser's saved login.
 
 `./fu prune --days 30` (part of every run) blanks the text and deletes the photos of posts handled more than 30 days ago. Their keys stay, so they never come back.

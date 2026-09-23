@@ -33,7 +33,8 @@ def build_digest_message(cfg, digest):
                 mime = mimetypes.guess_type(path.name)[0] or "image/jpeg"
                 attached[file] = (make_msgid(domain="feed-unfucker.local")[1:-1], path.read_bytes(), mime)
 
-    html_body = render.render_html(digest, lambda f: f"cid:{attached[f][0]}" if f in attached else None, cfg.tz)
+    html_body = render.render_html(
+        digest, lambda im: f"cid:{attached[im['file']][0]}" if im.get("file") in attached else None, cfg.tz)
     msg = _base(cfg, subject)
     msg.set_content(render.render_text(digest, cfg.tz))
     msg.add_alternative(html_body, subtype="html")

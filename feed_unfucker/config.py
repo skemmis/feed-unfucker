@@ -42,6 +42,24 @@ def read_env_file(path):
     return values
 
 
+def set_env_value(path, key, value):
+    """Set KEY=value in an env file, keeping every other line as it was."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lines = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
+    out, found = [], False
+    for line in lines:
+        if line.strip().startswith(key + "="):
+            if not found:
+                out.append(f"{key}={value}")
+            found = True
+        else:
+            out.append(line)
+    if not found:
+        out.append(f"{key}={value}")
+    path.write_text("\n".join(out) + "\n", encoding="utf-8")
+    path.chmod(0o600)
+
+
 @dataclass
 class Config:
     home: Path

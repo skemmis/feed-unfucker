@@ -9,8 +9,8 @@ from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from feed_unfucker import digest, labels, mail, render, state, store
-from feed_unfucker.config import load_config
+from feed_unfucker import digest, labels, mail, outbox, render, state, store
+from feed_unfucker.config import load_config, read_env_file, set_env_value
 from feed_unfucker.filters import left_out_sentence
 from feed_unfucker.ingest import IngestError, ingest, normalize_link, validate
 
@@ -103,7 +103,7 @@ class IngestTests(Base):
         ingest(self.conn, self.cfg, {"platform": "instagram", "posts": [
             post("Ana", "", images=[{"url": "https://example.com/a.jpg"}])]}, Path(self.tmp.name), fetch=broken)
         row = self.conn.execute("SELECT images, decision FROM posts").fetchone()
-        self.assertEqual(json.loads(row["images"]), [{"file": None, "alt": ""}])
+        self.assertEqual(json.loads(row["images"]), [{"file": None, "alt": "", "url": "https://example.com/a.jpg"}])
         self.assertIsNone(row["decision"])  # still a photo post, so it waits for a label
 
 
@@ -214,6 +214,47 @@ class EmailTests(Base):
     def test_send_refuses_without_settings(self):
         with self.assertRaises(SystemExit):
             mail.send(self.cfg, mail.build_broke_message(self.cfg, "x", store.utcnow())[0])
+
+
+class OutboxTests(Base):
+    def test_prepare_uses_remote_photos_and_sent_records_once(self):
+        self.ingest([post("Ana", "Beach", images=[{"url": "https://scontent.example/a.jpg", "alt": "beach"},
+                                                   {"path": "missing.png"}]),
+                     post("Bo", "vote!")])
+        self.label_all({"Bo": {"label": "opinion"}})
+        path = outbox.prepare(self.conn, self.cfg, digest.build(self.conn, self.cfg))
+        payload = json.loads(path.read_text())
+        self.assertEqual(payload["to"], "me@example.com")
+        self.assertIn("src='https://scontent.example/a.jpg'", payload["html_body"])
+        self.assertNotIn("cid:", payload["html_body"])
+        self.assertIn("1 more photo on Facebook", payload["html_body"])
+        self.assertIn("Beach", payload["text_body"])
+        # Not sent yet: the same posts are still waiting.
+        self.assertEqual(digest.build(self.conn, self.cfg).n_posts, 1)
+        outbox.mark_sent(self.conn, payload["id"])
+        again = digest.build(self.conn, self.cfg)
+        self.assertEqual((again.n_posts, sum(again.left_out.values())), (0, 0))
+        with self.assertRaises(SystemExit):
+            outbox.mark_sent(self.conn, payload["id"])
+
+    def test_prepare_needs_an_address(self):
+        with self.assertRaises(SystemExit):
+            outbox.prepare(self.conn, replace(self.cfg, email_to=""), digest.build(self.conn, self.cfg))
+
+    def test_broke_prepares_an_alert(self):
+        path = outbox.prepare(self.conn, self.cfg, digest.build(self.conn, self.cfg))
+        self.assertTrue(path.stem.endswith("-alert"))
+        outbox.mark_sent(self.conn, path.stem)
+        self.assertEqual(self.conn.execute("SELECT kind FROM digests").fetchone()[0], "alert")
+
+    def test_set_env_value_keeps_other_lines(self):
+        env = self.cfg.home / "config.env"
+        env.write_text("# note\nFU_CADENCE=weekly\nFU_EMAIL_TO=old@example.com\n")
+        set_env_value(env, "FU_EMAIL_TO", "new@example.com")
+        set_env_value(env, "FU_TIMEZONE", "Europe/London")
+        self.assertEqual(read_env_file(env), {"FU_CADENCE": "weekly", "FU_EMAIL_TO": "new@example.com",
+                                              "FU_TIMEZONE": "Europe/London"})
+        self.assertTrue(env.read_text().startswith("# note"))
 
 
 class StateTests(Base):
