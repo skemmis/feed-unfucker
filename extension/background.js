@@ -74,7 +74,7 @@ async function readOne(platform) {
   let win;
   let result;
   try {
-    win = await chrome.windows.create({ url: feed.url, type: "popup", focused: false, width: 520, height: 900 });
+    win = await chrome.windows.create({ url: feed.url, type: "popup", focused: false, width: 820, height: 1000 });
     const tabId = win.tabs[0].id;
     await loaded(tabId, 45000);
     const done = new Promise((resolve) => waiting.set(runId, resolve));
@@ -100,7 +100,9 @@ async function readOne(platform) {
     source: feed.source,
     captured_at: at,
     status: result.status,
-    note: result.error || `Read ${result.screens || 0} screens.`,
+    note: result.error || `Read ${result.screens || 0} screens${result.mode === "screens" ? ", as whole screens (no posts could be told apart)" : ""}.`,
+    mode: result.mode || "posts",
+    diagnosis: result.diagnosis,
     items: result.items || [],
   };
   const name = `capture-${platform}-${at.slice(0, 16).replace(/:/g, "")}Z.json`;

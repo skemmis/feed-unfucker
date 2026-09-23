@@ -45,4 +45,6 @@ Download each file and save it as `state/inbox/<the same file name>`. It looks l
 
   Skip items that aren't posts (a "People you may know" row, a stories strip, a "Create post" box).
 
+  If the capture's `mode` is `screens`, the extension couldn't tell posts apart on the page, so each item is a whole screen: the lines of text that were new on that screen, top to bottom, with that screen's photos and links. Find the posts in the text yourself (a name, then a time, then the words, usually), match photos and links to them as best you can, and leave a photo out rather than guess. Menus, sidebars and buttons are mixed in; ignore them. Mention in your report that this capture was read as whole screens, since it usually means the site changed its layout.
+
 Write one posts file per capture, `state/inbox/posts-<the capture's name>`, in the format in `docs/formats.md`, with `platform` and `source` from the capture and `note` naming the capture file. Then run `./fu ingest` on it. Repeats across captures are fine; `./fu ingest` drops them.

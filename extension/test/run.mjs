@@ -23,6 +23,7 @@ const testExt = path.join(tmp, "extension");
 // A test copy: the fake feed instead of Facebook, local storage instead of Drive, short pauses.
 fs.cpSync(extDir, testExt, { recursive: true, filter: (p) => !p.includes(`${path.sep}test`) });
 let gate = "password";
+let markup = "article";
 const server = http.createServer((req, res) => {
   if (req.url.startsWith("/gate")) {
     const pages = {
@@ -33,7 +34,12 @@ const server = http.createServer((req, res) => {
   }
   const file = path.join(feedDir, req.url === "/" ? "index.html" : path.normalize(req.url).replace(/^[/\\]+/, ""));
   if (!file.startsWith(feedDir) || !fs.existsSync(file)) return res.writeHead(404).end();
-  res.writeHead(200, { "Content-Type": file.endsWith(".png") ? "image/png" : "text/html" }).end(fs.readFileSync(file));
+  let body = fs.readFileSync(file);
+  // The same feed with other markup: posts marked by aria-posinset, or not marked at all.
+  if (file.endsWith(".html") && markup !== "article") {
+    body = body.toString().replaceAll('role="article"', markup === "posinset" ? 'aria-posinset="1"' : "");
+  }
+  res.writeHead(200, { "Content-Type": file.endsWith(".png") ? "image/png" : "text/html" }).end(body);
 });
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
 const feedUrl = `http://localhost:${server.address().port}/`;
@@ -50,7 +56,7 @@ edit("background.js", (s) =>
     .replace("https://www.instagram.com/?variant=following", `${feedUrl}gate`)
     .replace("minPauseMs: 2000, maxPauseMs: 5000", "minPauseMs: 300, maxPauseMs: 600")
 );
-edit("capture.js", (s) => s.replace('startsWith("https://")', 'startsWith("http")'));
+edit("capture.js", (s) => s.replaceAll('startsWith("https://")', 'startsWith("http")'));
 fs.writeFileSync(
   path.join(testExt, "drive.js"),
   `export const getToken = async () => "test";
@@ -126,6 +132,29 @@ try {
   const coded = await page.evaluate(() => chrome.storage.local.get("saved"));
   assert.equal(coded.saved.length, 4);
   assert.equal(coded.saved[3].record.status, "needs_login", "a code check wasn't treated as logged out");
+
+  // Other markup: posts marked another way are still found one by one; with no marks at
+  // all, it falls back to whole screens of text, which still hold every post.
+  const readFacebookAgain = async () => {
+    await page.evaluate(() => chrome.storage.local.set({ platforms: ["facebook"], runs: {}, known: {} }));
+    await page.evaluate(() => chrome.runtime.sendMessage({ type: "fu-read-now" }));
+    const { saved: all } = await page.evaluate(() => chrome.storage.local.get("saved"));
+    return all[all.length - 1].record;
+  };
+  markup = "posinset";
+  const posinset = await readFacebookAgain();
+  assert.equal(posinset.mode, "posts");
+  assert.equal(posinset.items.length, 8, "posts marked with aria-posinset weren't found");
+  markup = "none";
+  const screens = await readFacebookAgain();
+  assert.equal(screens.status, "ok");
+  assert.equal(screens.mode, "screens");
+  const allText = screens.items.map((i) => i.text).join("\n");
+  for (const who of ["Sam Ortiz", "Lee Nakamura", "Robin Hale", "Alex Kim", "Pat Morgan"]) {
+    assert.ok(allText.includes(who), `screen mode missed ${who}`);
+  }
+  assert.ok(screens.items.some((i) => i.images.length), "screen mode found no photos");
+  assert.ok(screens.diagnosis && screens.diagnosis.text_length > 0, "no diagnosis on a screen-mode read");
 
   console.log(`ok: ${rec.items.length} posts, ${rec.items.reduce((a, i) => a + i.images.length, 0)} photos, ${rec.note}`);
 } finally {

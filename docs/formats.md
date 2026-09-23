@@ -62,7 +62,9 @@ The extension saves one file per read to the **Feed Unfucker** folder in the use
 | `captured_at` | ISO 8601, UTC | Relative post times ("2h") count back from this. |
 | `status` | `ok`, `no_posts`, `needs_login` or `error` | `needs_login` covers login pages and security checks. |
 | `note` | string | How many screens were read, or what went wrong. |
-| `items` | list | One per post on screen: `text` (the page's own text for the post, top to bottom, with "See more" expanded), `links` (addresses that look like the post's own) and `images` (`url` and the page's `alt`, photos only). |
+| `mode` | `posts` or `screens` | `screens` when no post could be told apart on the page: then each item is one screen's new lines of text. |
+| `diagnosis` | object or absent | On a read that found nothing (or only screens): counts of what the page offered, like how many `role="article"` elements. No content. |
+| `items` | list | One per post on screen (or per screen, in `screens` mode): `text` (the page's own text for the post, top to bottom, with "See more" expanded), `links` (addresses that look like the post's own) and `images` (`url` and the page's `alt`, photos only). |
 
 ## State: `./fu state export FILE` and `import FILE`
 
