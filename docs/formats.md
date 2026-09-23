@@ -1,6 +1,6 @@
 # File formats
 
-Two JSON files pass from the agent to `./fu`. Both are checked on the way in, and every problem is listed at once so the agent can fix them in one go.
+Two JSON files pass from the agent to `./fu`: posts and labels. Both are checked on the way in, and every problem is listed at once so the agent can fix them in one go.
 
 ## Posts: `./fu ingest FILE`
 
@@ -50,6 +50,25 @@ Each label:
 | `reason` | string | A few plain words. |
 
 Leave out `preferences` entirely to keep what's stored.
+
+## Captures: from the extension
+
+The extension saves one file per read to the **Feed Unfucker** folder in the user's Google Drive, named `capture-<platform>-<YYYY-MM-DDTHHMM>Z.json`, and deletes them after 14 days. The agent turns them into a posts file (`prompts/read-capture.md`).
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `format`, `version` | `"feed-unfucker-capture"`, `1` | |
+| `platform`, `source` | as in a posts file | |
+| `captured_at` | ISO 8601, UTC | Relative post times ("2h") count back from this. |
+| `status` | `ok`, `no_posts`, `needs_login` or `error` | `needs_login` covers login pages and security checks. |
+| `note` | string | How many screens were read, or what went wrong. |
+| `mode` | `posts` or `screens` | `screens` when no post could be told apart on the page: then each item is one screen's new lines of text. |
+| `diagnosis` | object or absent | On a read that found nothing (or only screens): counts of what the page offered, like how many `role="article"` elements. No content. |
+| `items` | list | One per post on screen (or per screen, in `screens` mode): `text` (the page's own text for the post, top to bottom, with "See more" expanded), `links` (addresses that look like the post's own) and `images` (`url` and the page's `alt`, photos only). |
+
+## State: `./fu state export FILE` and `import FILE`
+
+What a fresh machine needs to carry on: keys of posts already seen, recent sends per friend, the last few emails, close friends, `preferences.md`, and the non-secret settings (`FU_EMAIL_TO`, cadence, weekly day, timezone, platforms, read mode). No post text or photos, and never a password or token. In extension mode the agent keeps it in the Drive folder as `feed-unfucker-state.json`. On import, saved settings replace a fresh machine's defaults but never a value changed on that machine.
 
 ## What's kept, and where
 

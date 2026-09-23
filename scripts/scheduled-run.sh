@@ -23,7 +23,7 @@ fi
 case "$agent" in
   claude)
     claude -p "$prompt" --output-format json \
-      --allowedTools "Bash(./fu:*),Bash(rm state/inbox/*),Read,Write,Edit,mcp__playwright,mcp__claude_ai_Gmail,mcp__Gmail" \
+      --allowedTools "Bash(./fu:*),Bash(rm state/inbox/*),Read,Write,Edit,mcp__playwright,mcp__claude_ai_Gmail,mcp__Gmail,mcp__claude_ai_Google_Drive,mcp__Google_Drive" \
       >"$log" 2>&1
     ;;
   codex)

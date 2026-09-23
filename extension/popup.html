@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Feed Unfucker</title>
+  <style>
+    :root { --bg: #fbf8f3; --ink: #2b2723; --muted: #736b62; --line: #e6dfd5; --accent: #3f6b4f; --warn: #b3261e; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #1f1d1a; --ink: #eee8df; --muted: #a79e93; --line: #3a3631; --accent: #8fbf9b; --warn: #f2b8b5; } }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 Georgia, "Iowan Old Style", serif; width: 340px; }
+    body.welcome { width: auto; max-width: 560px; margin: 48px auto; padding: 0 16px; font-size: 16px; }
+    main { padding: 16px; }
+    h1 { font-size: 18px; margin: 0 0 4px; font-weight: normal; }
+    p { margin: 8px 0; }
+    .muted { color: var(--muted); }
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 0; border-top: 1px solid var(--line); }
+    .status { font-size: 12px; color: var(--muted); }
+    .status.bad { color: var(--warn); }
+    button { font: inherit; border: 1px solid var(--accent); background: var(--accent); color: var(--bg); padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+    button.quiet { background: transparent; color: var(--accent); }
+    button:disabled { opacity: 0.5; cursor: default; }
+    ol { padding-left: 20px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Feed Unfucker</h1>
+    <p class="muted" id="intro">Once a day this reads your friends' posts in your own Chrome and saves them to your own Google Drive. It only reads: it never likes, comments or posts.</p>
+
+    <div class="row">
+      <div><div>Google Drive</div><div class="status" id="drive-status">Checking…</div></div>
+      <button id="connect">Connect</button>
+    </div>
+
+    <div class="row">
+      <label><input type="checkbox" id="facebook"> Facebook</label>
+      <div><div class="status" id="facebook-status"></div><a class="status" id="facebook-login" href="#" hidden>Open it to log in</a></div>
+    </div>
+    <div class="row">
+      <label><input type="checkbox" id="instagram"> Instagram</label>
+      <div><div class="status" id="instagram-status"></div><a class="status" id="instagram-login" href="#" hidden>Open it to log in</a></div>
+    </div>
+
+    <div class="row">
+      <div class="status" id="read-status">Reads happen by themselves once a day, while Chrome is open.</div>
+      <button class="quiet" id="read-now">Read now</button>
+    </div>
+
+    <div id="next" hidden>
+      <p><strong>Last step:</strong> open your coding agent, anywhere you like, and say "Set up Feed Unfucker for me". It will ask a couple of questions and send your first digest.</p>
+    </div>
+  </main>
+  <script src="popup.js" type="module"></script>
+</body>
+</html>

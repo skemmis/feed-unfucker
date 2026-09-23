@@ -2,6 +2,7 @@ import email
 import email.policy
 import io
 import json
+import shutil
 import tempfile
 import unittest
 from contextlib import redirect_stdout
@@ -10,7 +11,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from feed_unfucker import digest, labels, mail, outbox, render, state, store
-from feed_unfucker.config import load_config, read_env_file, set_env_value
+from feed_unfucker.config import REPO_ROOT, load_config, read_env_file, set_env_value
 from feed_unfucker.filters import left_out_sentence
 from feed_unfucker.ingest import IngestError, ingest, normalize_link, validate
 
@@ -274,6 +275,32 @@ class StateTests(Base):
             self.assertEqual((again["new"], again["repeats"]), (1, 1))
             fresh.label_all({})
             self.assertEqual(digest.build(fresh.conn, fresh.cfg).friends, [])  # weekly cap carried over
+        finally:
+            fresh.tearDown()
+
+    def test_settings_and_preferences_survive_a_fresh_machine(self):
+        env = self.cfg.home / "config.env"
+        set_env_value(env, "FU_EMAIL_TO", "me@example.com")
+        set_env_value(env, "FU_CADENCE", "daily")
+        set_env_value(env, "FU_SMTP_PASSWORD", "hunter2")
+        self.cfg.preferences_path.write_text("Always show Dan.\n", encoding="utf-8")
+        data = state.export_state(self.conn, self.cfg)
+        self.assertNotIn("hunter2", json.dumps(data))
+
+        fresh = Base()
+        fresh.setUp()
+        try:
+            # A fresh machine starts from the examples, as ./fu init makes it.
+            shutil.copyfile(REPO_ROOT / "config.example.env", fresh.cfg.home / "config.env")
+            shutil.copyfile(REPO_ROOT / "preferences.example.md", fresh.cfg.preferences_path)
+            set_env_value(fresh.cfg.home / "config.env", "FU_TIMEZONE", "Europe/London")
+            data["settings"]["FU_TIMEZONE"] = "America/New_York"
+            state.import_state(fresh.conn, fresh.cfg, data)
+            got = read_env_file(fresh.cfg.home / "config.env")
+            self.assertEqual((got["FU_EMAIL_TO"], got["FU_CADENCE"]), ("me@example.com", "daily"))
+            self.assertEqual(got["FU_TIMEZONE"], "Europe/London")  # changed on this machine, so kept
+            self.assertEqual(got["FU_SMTP_PASSWORD"], "")
+            self.assertEqual(fresh.cfg.preferences_path.read_text(encoding="utf-8"), "Always show Dan.\n")
         finally:
             fresh.tearDown()
 

@@ -1,0 +1,84 @@
+{
+ "captured_at": "2026-09-23T08:12:00.000Z",
+ "format": "feed-unfucker-capture",
+ "items": [
+  {
+   "images": [
+    {
+     "alt": "May be an image of a vegetable garden",
+     "url": "https://example.com/fake-feed/sam-garden.png"
+    }
+   ],
+   "links": [
+    "https://www.facebook.com/sam.ortiz/posts/101?__cft__[0]=AZX1"
+   ],
+   "text": "Sam Ortiz\n2h\n\nFirst courgette of the year! Only took three months and one very determined slug war.\n\n24 likes · 5 comments\nLikeCommentShare"
+  },
+  {
+   "images": [
+    {
+     "alt": "Product photo",
+     "url": "https://example.com/fake-feed/ad.png"
+    }
+   ],
+   "links": [],
+   "text": "Glow Serum Co.\nSponsored\n\nYour skin, but better. 40% off today only.\n\nShop now"
+  },
+  {
+   "images": [
+    {
+     "alt": "May be an image of a baby",
+     "url": "https://example.com/fake-feed/lee-baby.png"
+    },
+    {
+     "alt": "May be an image of a baby and a cat",
+     "url": "https://example.com/fake-feed/lee-baby-2.png"
+    }
+   ],
+   "links": [
+    "https://www.facebook.com/lee.nakamura/posts/102"
+   ],
+   "text": "Lee Nakamura\nYesterday at 18:40\n\nSix months ago today we brought Hana home. She's discovered her feet, the cat, and that shrieking at 5am gets results. Thank you to everyone who dropped off meals in those first weeks. We honestly wouldn't have made it without you. Come and visit soon, she's much better company now.\n\n87 likes · 31 comments\nLikeCommentShare"
+  },
+  {
+   "images": [],
+   "links": [
+    "https://www.facebook.com/dailylaughs/posts/900"
+   ],
+   "text": "Suggested for you\nDaily Laughs\n4h · Follow\n\nTag someone who does this every morning 😂😂\n\n12K likes · 4.1K comments"
+  },
+  {
+   "images": [],
+   "links": [
+    "https://www.facebook.com/chris.dunn/posts/103"
+   ],
+   "text": "Chris Dunn shared a post.\n6h\nOutrage Nation\n\nYou will NOT believe what they just voted for. Share before this gets taken down!\n\n3 likes"
+  },
+  {
+   "images": [],
+   "links": [
+    "https://www.facebook.com/pat.morgan/posts/104"
+   ],
+   "text": "Pat Morgan\n3d\n\nHonestly anyone who supports this council's new parking plan should be ashamed. Absolute clowns, every one of them. Fight me in the comments.\n\n9 likes · 40 comments"
+  },
+  {
+   "images": [],
+   "links": [
+    "https://www.facebook.com/robin.hale/posts/105"
+   ],
+   "text": "Robin Hale\n5h\n\nDoes anyone know a good plumber in Leeds? Our boiler has chosen violence.\n\n2 likes · 11 comments"
+  },
+  {
+   "images": [],
+   "links": [
+    "https://www.facebook.com/alex.kim/posts/106"
+   ],
+   "text": "Alex Kim\n1d\n\nFirst day at the bakery done. I smell like cinnamon and I have never been happier.\n\n56 likes · 19 comments"
+  }
+ ],
+ "note": "Read 7 screens. (Made from fixtures/fake-feed/, with made-up friends.)",
+ "platform": "facebook",
+ "source": "friends_feed",
+ "status": "ok",
+ "version": 1
+}

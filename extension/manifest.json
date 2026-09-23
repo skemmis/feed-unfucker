@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Feed Unfucker",
+  "version": "0.1.0",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvX9k/yY5EPBbxnrFNcWxutKEHLXBf2V+aKKQoc74yoRZHfPiFOtnh/NCuQEMJ0JiEMV+oEdlro5tyC8xI12sXz+TOefGapEgCIjeHq45L0cYWr9c6GYJX+6bQAjaooDLpWp1Dl0pFemNZguX1rDU3deeZ86yvv8hyICWBShbhwsXNw9wX+s+TvyHsqCRlQpkqEDbOgPvlBw3JzifH2pT3JcNNQD5J8nBUJcy4BKuIPVSAjQfS+xS3S8iD0YbqZ3K2uTjj5QKFi+aaNIOrcs7SPW75lbXJVSbDU2QFBm5IpYTdVBzYbuMKax34jlkIYwkEVf9BJ86JdPsW5NA737G2wIDAQAB",
+  "description": "Reads your Facebook Friends feed and Instagram Following feed once a day and saves it to your own Google Drive, for your agent to turn into a calm digest.",
+  "minimum_chrome_version": "116",
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Feed Unfucker"
+  },
+  "permissions": [
+    "alarms",
+    "storage",
+    "identity",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://www.facebook.com/*",
+    "https://www.instagram.com/*"
+  ],
+  "oauth2": {
+    "client_id": "806855415311-pilgf9ec88ejpijkj13213547lbvq6mf.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/drive.file"
+    ]
+  }
+}

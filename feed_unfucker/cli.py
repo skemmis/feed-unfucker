@@ -38,10 +38,10 @@ def cmd_init(args, cfg):
     if not env.exists():
         shutil.copyfile(REPO_ROOT / "config.example.env", env)
         env.chmod(0o600)
-        print(f"Created {env}. The user fills in their email settings there; don't read it back.")
+        print(f"Created {env}. Change settings with ./fu config set; don't read the file.")
     if not cfg.preferences_path.exists():
         shutil.copyfile(REPO_ROOT / "preferences.example.md", cfg.preferences_path)
-        print(f"Created {cfg.preferences_path} from the example. The user edits it in plain English.")
+        print(f"Created {cfg.preferences_path} from the example. Fill it in from the user's answers.")
     store.connect(cfg).close()
     print(f"State folder ready: {cfg.home}")
 
@@ -55,7 +55,8 @@ def cmd_doctor(args, cfg):
         print(("ok    " if good else "todo  ") + text)
 
     line(sys.version_info >= (3, 9), f"Python {sys.version.split()[0]}")
-    line(bool(shutil.which("npx")), "npx is installed (needed for the Playwright MCP server)")
+    if cfg.read_via == "browser":
+        line(bool(shutil.which("npx")), "npx is installed (needed for the Playwright MCP server)")
     line(cfg.home.exists(), f"state folder {cfg.home}")
     line(cfg.preferences_path.exists(), f"preferences at {cfg.preferences_path}")
     line(bool(cfg.email_to), f"FU_EMAIL_TO is {'set' if cfg.email_to else 'missing'}")
@@ -63,7 +64,11 @@ def cmd_doctor(args, cfg):
         print("      email: ./fu sends it over SMTP (digest --send)")
     else:
         print("      email: your email tool sends it (digest --prepare, then ./fu sent)")
-    print(f"      this machine: {machine_kind()}")
+    if cfg.read_via == "extension":
+        print("      reads the feed: the Feed Unfucker Chrome extension saves it to the user's Google Drive")
+    else:
+        print("      reads the feed: you, with the Playwright browser")
+        print(f"      this machine: {machine_kind()}")
     print(f"      platforms to read: {', '.join(cfg.platforms) or 'none'}")
     print(f"      digest cadence: {cfg.cadence}" + (f", on {cfg.weekly_day}" if cfg.cadence == "weekly" else ""))
     if cfg.db_path.exists():
@@ -236,6 +241,13 @@ def cmd_alert(args, cfg):
         print("Not sent (add --send to send it).")
 
 
+def cmd_since(args, cfg):
+    """When to read captures from: the last digest, or three days ago before the first one."""
+    conn = store.connect(cfg)
+    row = conn.execute("SELECT sent_at FROM digests WHERE kind = 'digest' ORDER BY sent_at DESC LIMIT 1").fetchone()
+    print(row["sent_at"] if row else store.iso(store.utcnow() - timedelta(days=3)))
+
+
 def cmd_status(args, cfg):
     conn = store.connect(cfg)
     counts = {r[0] or "waiting": r[1] for r in conn.execute("SELECT decision, COUNT(*) FROM posts WHERE digested_at IS NULL GROUP BY decision")}
@@ -307,6 +319,7 @@ def main(argv=None):
     p.add_argument("key")
     p.add_argument("value")
 
+    sub.add_parser("since", help="print the time to read extension captures from (the last digest)")
     sub.add_parser("status", help="what's stored, recent reads and emails")
     p = sub.add_parser("prune", help="forget the content of old posts, keep their ids")
     p.add_argument("--days", type=int, default=30)

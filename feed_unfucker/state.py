@@ -2,13 +2,15 @@
 
 A cloud run keeps only: the keys of posts already seen, recent sends per
 friend (for the weekly per-person limit), when the last digest went out,
-close friends and the limit, and preferences.md. No post text or photos.
+close friends and the limit, preferences.md and the non-secret settings.
+No post text or photos, and never a password or token.
 """
 
 import shutil
 from datetime import timedelta
 
 from . import store
+from .config import PORTABLE_SETTINGS, REPO_ROOT, read_env_file, set_env_value
 
 VERSION = 1
 
@@ -25,6 +27,7 @@ def export_state(conn, cfg):
             "SELECT sent_at, kind, n_posts, n_friends, subject FROM digests ORDER BY sent_at DESC LIMIT 10")],
         "kv": {r["key"]: store.get_kv(conn, r["key"]) for r in conn.execute("SELECT key FROM kv")},
         "preferences_md": prefs,
+        "settings": {k: v for k, v in read_env_file(cfg.home / "config.env").items() if k in PORTABLE_SETTINGS and v},
     }
 
 
@@ -47,8 +50,18 @@ def import_state(conn, cfg, data):
                          (d["sent_at"], d["kind"], d["n_posts"], d["n_friends"], d["subject"]))
     for key, value in data.get("kv", {}).items():
         store.set_kv(conn, key, value)
-    if data.get("preferences_md") and not cfg.preferences_path.exists():
-        cfg.preferences_path.write_text(data["preferences_md"], encoding="utf-8")
+    # The saved choices win over a fresh machine's defaults, but never over a value
+    # someone already changed on this machine.
+    env = cfg.home / "config.env"
+    current = read_env_file(env)
+    example = read_env_file(REPO_ROOT / "config.example.env")
+    for key, value in data.get("settings", {}).items():
+        if key in PORTABLE_SETTINGS and value and current.get(key, "") in ("", example.get(key)):
+            set_env_value(env, key, value)
+    prefs = data.get("preferences_md")
+    example_prefs = (REPO_ROOT / "preferences.example.md").read_text(encoding="utf-8")
+    if prefs and (not cfg.preferences_path.exists() or cfg.preferences_path.read_text(encoding="utf-8") == example_prefs):
+        cfg.preferences_path.write_text(prefs, encoding="utf-8")
     conn.commit()
     return len(data["keys"])
 

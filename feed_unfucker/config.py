@@ -17,7 +17,11 @@ DEFAULTS = {
     "FU_SMTP_PORT": "465",
     "FU_TIMEZONE": "",
     "FU_PLATFORMS": "facebook,instagram",
+    "FU_READ_VIA": "extension",
 }
+
+# Settings that are safe to keep in the state file (never passwords or tokens).
+PORTABLE_SETTINGS = ("FU_EMAIL_TO", "FU_CADENCE", "FU_WEEKLY_DAY", "FU_TIMEZONE", "FU_PLATFORMS", "FU_READ_VIA")
 
 WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
@@ -74,6 +78,7 @@ class Config:
     email_to: str
     email_from: str
     platforms: tuple = ("facebook", "instagram")
+    read_via: str = "extension"
 
     @property
     def db_path(self):
@@ -114,6 +119,10 @@ def load_config(home=None):
     if weekly_day not in WEEKDAYS:
         raise SystemExit(f"FU_WEEKLY_DAY must be a day name like sunday, not {weekly_day!r}")
 
+    read_via = values.get("FU_READ_VIA", "extension").lower()
+    if read_via not in ("extension", "browser"):
+        raise SystemExit(f"FU_READ_VIA must be extension or browser, not {read_via!r}")
+
     user = values.get("FU_SMTP_USER", "")
     prefs = values.get("FU_PREFERENCES") or str(REPO_ROOT / "preferences.md")
     return Config(
@@ -129,4 +138,5 @@ def load_config(home=None):
         email_to=values.get("FU_EMAIL_TO") or user,
         email_from=values.get("FU_EMAIL_FROM") or user,
         platforms=tuple(p.strip().lower() for p in values.get("FU_PLATFORMS", "").split(",") if p.strip()),
+        read_via=read_via,
     )
