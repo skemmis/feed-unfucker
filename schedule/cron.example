@@ -1,0 +1,4 @@
+# Every day at 07:30. Change the path, and claude to codex if you use Codex.
+# cron has a short PATH, so add the folders where node, npx and your agent live.
+PATH=/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin
+30 7 * * * /path/to/feed-unfucker/scripts/scheduled-run.sh claude

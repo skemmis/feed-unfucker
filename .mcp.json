@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest",
+        "--user-data-dir",
+        "state/browser-profile",
+        "--output-dir",
+        "state/inbox"
+      ]
+    }
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "platform": "facebook",
+  "source": "friends_tab",
+  "note": "Made-up posts for ./fu demo. None of these people exist.",
+  "posts": [
+    {
+      "author": "Jen Park",
+      "author_kind": "person",
+      "_hours_ago": 20,
+      "text": "We did it! Keys in hand, boxes everywhere, and the cat has already claimed the window seat.\n\nHousewarming once we find the kettle.",
+      "images": [
+        {"path": "jen-1.png", "alt": "A sunny living room full of boxes", "_draw": {"top": [244, 214, 170], "bottom": [197, 150, 116], "sun": [0.72, 0.3]}},
+        {"path": "jen-2.png", "alt": "A grey cat on a window seat", "_draw": {"top": [196, 214, 230], "bottom": [120, 140, 160], "sun": [0.3, 0.45]}}
+      ],
+      "link": "https://www.facebook.com/jenpark.example/posts/1001?__cft__[0]=abc",
+      "_label": {"label": "life_update", "reason": "moved house"}
+    },
+    {
+      "author": "Marcus Obi",
+      "author_kind": "person",
+      "_hours_ago": 50,
+      "text": "Biscuit's first proper hill. She was not impressed by the wind, very impressed by the sandwiches.",
+      "images": [
+        {"path": "marcus-1.png", "alt": "A small dog on a windy hilltop", "_draw": {"top": [170, 205, 235], "bottom": [92, 128, 84], "sun": [0.8, 0.22]}}
+      ],
+      "link": "https://www.facebook.com/marcus.obi.example/posts/2002",
+      "_label": {"label": "photos", "reason": "dog on a walk"}
+    },
+    {
+      "author": "Ruth Adler",
+      "author_kind": "person",
+      "_hours_ago": 75,
+      "text": "The tomatoes finally came in. Forty years of gardening and I still get excited.",
+      "images": [
+        {"path": "ruth-1.png", "alt": "A bowl of red tomatoes on a table", "_draw": {"top": [250, 226, 190], "bottom": [186, 72, 52], "sun": [0.5, 0.55]}}
+      ],
+      "link": "https://www.facebook.com/ruth.adler.example/posts/3003",
+      "_label": {"label": "photos", "reason": "garden"}
+    },
+    {
+      "author": "Priya Raman",
+      "author_kind": "person",
+      "_hours_ago": 30,
+      "text": "Some news: after six years I'm leaving the lab and starting at the city library next month, running their science programme for kids. Terrified and thrilled.",
+      "link": "https://www.facebook.com/priya.raman.example/posts/4004",
+      "_label": {"label": "life_update", "reason": "new job"}
+    },
+    {
+      "author": "Dan Kowalski",
+      "author_kind": "person",
+      "_hours_ago": 10,
+      "text": "Does anyone have a soup recipe that a six-year-old will actually eat? Asking for a very stubborn six-year-old.",
+      "link": "https://www.facebook.com/dan.k.example/posts/5005",
+      "_label": {"label": "everyday", "reason": "question to friends"}
+    },
+    {
+      "author": "Dan Kowalski",
+      "author_kind": "person",
+      "_hours_ago": 60,
+      "text": "Ran my first 10k this morning. Slowly. Very slowly. But all of it.",
+      "link": "https://www.facebook.com/dan.k.example/posts/5006",
+      "_label": {"label": "life_update", "reason": "milestone"}
+    },
+    {
+      "author": "Dan Kowalski",
+      "author_kind": "person",
+      "_hours_ago": 90,
+      "text": "Hot take: the bus is the best place to read.",
+      "link": "https://www.facebook.com/dan.k.example/posts/5007",
+      "_label": {"label": "everyday", "reason": "passing thought"}
+    },
+    {
+      "author": "Maya Chen",
+      "author_kind": "person",
+      "_hours_ago": 100,
+      "text": "Theo turned one! Cake mostly went on his face.",
+      "images": [
+        {"path": "maya-1.png", "alt": "A baby with cake on his face", "_draw": {"top": [252, 232, 214], "bottom": [236, 176, 160], "sun": [0.4, 0.4]}}
+      ],
+      "link": "https://www.facebook.com/maya.chen.example/posts/6006",
+      "_label": {"label": "photos", "reason": "your preferences say always include Maya's kids", "pinned": true}
+    },
+    {
+      "author": "Lisa Grant",
+      "author_kind": "person",
+      "_hours_ago": 40,
+      "text": "I can't believe anyone still votes for these people. Share if you're as angry as I am!!",
+      "link": "https://www.facebook.com/lisa.grant.example/posts/7007",
+      "_label": {"label": "opinion", "reason": "politics and outrage"}
+    },
+    {
+      "author": "Kev Bright",
+      "author_kind": "person",
+      "_hours_ago": 45,
+      "text": "Tag 3 friends who would survive a zombie apocalypse 🧟",
+      "link": "https://www.facebook.com/kev.bright.example/posts/8008",
+      "_label": {"label": "bait", "reason": "tag-your-friends bait"}
+    },
+    {
+      "author": "Sophie Lane",
+      "author_kind": "person",
+      "_hours_ago": 55,
+      "text": "20% off all candles this weekend only! Link in comments.",
+      "link": "https://www.facebook.com/sophie.lane.example/posts/9009",
+      "_label": {"label": "promotion", "reason": "selling candles"}
+    },
+    {
+      "author": "Tom Reyes",
+      "author_kind": "person",
+      "_hours_ago": 25,
+      "text": "",
+      "is_reshare": true,
+      "reshared_from": "Viral Videos Daily",
+      "link": "https://www.facebook.com/tom.reyes.example/posts/1010"
+    },
+    {
+      "author": "Horizon Headsets",
+      "author_kind": "page",
+      "_hours_ago": 5,
+      "text": "Step into a new world. Shop now.",
+      "is_sponsored": true
+    },
+    {
+      "author": "Funny Pets Club",
+      "author_kind": "page",
+      "_hours_ago": 8,
+      "text": "You won't believe what this parrot says next.",
+      "is_suggested": true
+    }
+  ]
+}
